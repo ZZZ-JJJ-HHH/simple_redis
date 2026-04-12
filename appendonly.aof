@@ -1,0 +1,3 @@
+set name zz
+set age 18
+hset person name zhangsan age 20
