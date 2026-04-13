@@ -300,10 +300,12 @@ getClassLoader().getResourceAsStream("config.properties")
 
 ## 八、后续优化方向（按价值排序）
 
-### 1. 网络化（最推荐）
-- 使用 Socket / NIO
-- 实现 `telnet localhost 6379`
-- 变成真正的 Redis Server
+### 1. ✅ 网络化（已完成）
+- 实现 TCP Server 监听 6379 端口
+- 支持多客户端并发连接
+- 线程池管理客户端会话
+- 配置化端口和文件路径
+- 优雅退出机制（Shutdown Hook）
 
 ### 2. AOF Rewrite
 - 压缩日志文件
@@ -342,7 +344,7 @@ getClassLoader().getResourceAsStream("config.properties")
 ```
 src/
 ├── miniredis/
-│   ├── MiniRedis.java              # 主入口
+│   ├── MiniRedis.java              # 主入口（网络服务模式）
 │   ├── config/
 │   │   ├── ConfigManager.java      # 配置管理
 │   │   └── config.properties       # 配置文件
@@ -360,6 +362,8 @@ src/
 │   │       ├── string/             # String 命令
 │   │       ├── hash/               # Hash 命令
 │   │       └── expire/             # 过期命令
+│   ├── server/
+│   │   └── RedisServer.java        # TCP 服务器（新增）
 │   └── backup/
 │       ├── AOFManager.java         # AOF 管理器
 │       └── AOFLoader.java          # AOF 加载器

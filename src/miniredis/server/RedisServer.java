@@ -91,7 +91,7 @@ public class RedisServer {
                 // 支持退出命令
                 if ("EXIT".equalsIgnoreCase(inputLine.trim()) || 
                     "QUIT".equalsIgnoreCase(inputLine.trim())) {
-                    out.println("OK");
+                    System.out.println("Client disconnected");
                     break;
                 }
 
@@ -99,7 +99,7 @@ public class RedisServer {
                     String response = CommandParser.parse(inputLine).execute(context);
                     out.println(response);
                 } catch (Exception e) {
-                    out.println("ERROR: " + e.getMessage());
+                    System.out.println("Command execution error: " + e.getMessage());
                 }
             }
         } catch (IOException e) {
