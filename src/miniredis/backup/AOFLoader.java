@@ -16,12 +16,16 @@ public class AOFLoader {
 
             String line;
             while ((line = reader.readLine()) != null) {
+                // 跳过空行
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
 
                 try {
                     Command cmd = CommandParser.parse(line);
                     cmd.execute(context);
                 } catch (Exception e) {
-                    System.out.println("AOF load error: " + line);
+                    System.err.println("AOF load error: " + e.getMessage());
                 }
             }
 

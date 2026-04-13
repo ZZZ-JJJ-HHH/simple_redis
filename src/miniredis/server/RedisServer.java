@@ -3,6 +3,8 @@ package miniredis.server;
 import miniredis.command.CommandParser;
 import miniredis.core.Context;
 import miniredis.config.ConfigManager;
+import miniredis.protocol.RespParser;
+import miniredis.protocol.RespEncoder;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -82,31 +84,65 @@ public class RedisServer {
                 clientSocket.getOutputStream(), true
             )
         ) {
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                if (inputLine.trim().isEmpty()) {
-                    continue;
-                }
-
-                // 支持退出命令
-                if ("EXIT".equalsIgnoreCase(inputLine.trim()) || 
-                    "QUIT".equalsIgnoreCase(inputLine.trim())) {
-                    System.out.println("Client disconnected");
-                    break;
-                }
-
+            // 创建 RESP 解析器和编码器
+            RespParser parser = new RespParser(in);
+            RespEncoder encoder = new RespEncoder(out);
+            
+            System.out.println("Client connected: " + clientSocket.getRemoteSocketAddress());
+            
+            while (running) {
+                String commandLine = null;
                 try {
-                    String response = CommandParser.parse(inputLine).execute(context);
-                    out.println(response);
+                    // 解析 RESP 命令
+                    String[] commands = parser.parseCommand();
+                    
+                    if (commands == null || commands.length == 0) {
+                        continue;
+                    }
+                    
+                    String cmd = commands[0].toUpperCase();
+                    
+                    // 支持 PING 命令
+                    if ("PING".equals(cmd)) {
+                        encoder.writeSimpleString("PONG");
+                        continue;
+                    }
+                    
+                    // 支持退出命令
+                    if ("EXIT".equals(cmd) || "QUIT".equals(cmd)) {
+                        System.out.println("Client disconnected: " + clientSocket.getRemoteSocketAddress());
+                        encoder.writeSimpleString("OK");
+                        break;
+                    }
+                    
+                    // 重新组装命令字符串（保持与原有 CommandParser 兼容）
+                    StringBuilder cmdBuilder = new StringBuilder();
+                    for (int i = 0; i < commands.length; i++) {
+                        if (i > 0) cmdBuilder.append(" ");
+                        cmdBuilder.append(commands[i]);
+                    }
+                    commandLine = cmdBuilder.toString();
+                    
+                    // 执行命令
+                    String response = CommandParser.parse(commandLine).execute(context);
+                    
+                    // 用 RESP 格式编码响应
+                    encoder.writeResponse(response);
+                    
                 } catch (Exception e) {
-                    System.out.println("Command execution error: " + e.getMessage());
+                    System.err.println("Command execution error: " + e.getMessage() + (commandLine != null ? " | Command: [" + commandLine + "]" : ""));
+                    // 发送错误响应
+                    encoder.writeError("ERR " + e.getMessage());
                 }
             }
         } catch (IOException e) {
-            System.err.println("Client connection error: " + e.getMessage());
+            if (running) {
+                System.err.println("Client connection error: " + e.getMessage());
+            }
         } finally {
             try {
                 clientSocket.close();
+                System.out.println("Client closed: " + clientSocket.getRemoteSocketAddress());
             } catch (IOException e) {
                 // ignore
             }

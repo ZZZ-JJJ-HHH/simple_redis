@@ -1,5 +1,6 @@
 package miniredis.command;
 
+import miniredis.command.impl.GenericCommand;
 import miniredis.command.impl.expire.ExpireCommand;
 import miniredis.command.impl.hash.*;
 import miniredis.command.impl.string.GetCommand;
@@ -97,6 +98,24 @@ public class CommandParser {
             int seconds = Integer.parseInt(parts[2]);
             return new ExpireCommand(parts[1], seconds);
         });
+
+        // 管理命令支持（返回空响应或默认值）
+        REGISTRY.put("client", parts -> new GenericCommand("OK"));
+        REGISTRY.put("config", parts -> {
+            // CONFIG GET databases 返回数组格式
+            if (parts.length >= 3 && "get".equalsIgnoreCase(parts[1]) && "databases".equalsIgnoreCase(parts[2])) {
+                return new GenericCommand("*2\r\n$9\r\ndatabases\r\n:16\r\n");
+            }
+            return new GenericCommand("OK");
+        });
+        REGISTRY.put("scan", parts -> {
+            // SCAN 返回空列表
+            return new GenericCommand("*2\r\n$1\r\n0\r\n*0\r\n");
+        });
+        REGISTRY.put("info", parts -> new GenericCommand("# Server\r\nredis_version:1.0.0\r\n"));
+        REGISTRY.put("dbsize", parts -> new GenericCommand(":0"));
+        REGISTRY.put("select", parts -> new GenericCommand("OK"));
+        REGISTRY.put("command", parts -> new GenericCommand("*0\r\n"));
 
     }
 
