@@ -1,11 +1,13 @@
 package miniredis.backup;
 
+import miniredis.config.ConfigManager;
+
 import java.io.FileWriter;
 import java.io.IOException;
 
 public class AOFManager {
 
-    private static final String AOF_FILE = "appendonly.aof";
+    private static final String AOF_FILE = ConfigManager.getString("aof.file.path", "appendonly.aof");
     
     private static boolean enabled = true;  // AOF 开关
 
