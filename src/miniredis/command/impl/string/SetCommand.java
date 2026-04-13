@@ -23,10 +23,18 @@ public class SetCommand implements Command {
     @Override
     public String execute(Context context) {
         context.getStore().put(key, new RedisObject(value, DataType.STRING));
-        if (expireSeconds != null) {
-            long expireTime = System.currentTimeMillis() + expireSeconds * 1000L;
-            context.getExpireMap().put(key, expireTime);
+        
+        // 如果指定了过期时间，使用指定的；否则设置默认 TTL（1小时 = 3600秒）
+        long expireSeconds;
+        if (this.expireSeconds != null) {
+            expireSeconds = this.expireSeconds;
+        } else {
+            expireSeconds = 3600;  // 默认 1 小时
         }
+        
+        long expireTime = System.currentTimeMillis() + expireSeconds * 1000L;
+        context.getExpireMap().put(key, expireTime);
+        
         AOFManager.append("set " + key + " " + value);
         return "OK";
     }

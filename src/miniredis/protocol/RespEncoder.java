@@ -83,6 +83,15 @@ bar\r
             writeBulkString(null);
         } else if (response instanceof String) {
             String str = (String) response;
+            
+            // 检查是否是原始 RESP 格式
+            if (str.startsWith("__RESP_RAW__:")) {
+                String rawResp = str.substring(13); // 去掉 "__RESP_RAW__:"
+                writer.print(rawResp);
+                writer.flush();
+                return;
+            }
+            
             // 判断是否是特殊格式
             if (str.startsWith("(error) ")) {
                 // 错误消息

@@ -48,4 +48,9 @@ public class LRUCache {
     public synchronized boolean containsKey(String key) {
         return map.containsKey(key);
     }
+    
+    // 获取内部的 Map（用于 SCAN 等操作）
+    public synchronized LinkedHashMap<String, RedisObject> getCache() {
+        return map;
+    }
 }

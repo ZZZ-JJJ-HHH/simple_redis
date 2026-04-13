@@ -28,6 +28,7 @@ public class AOFLoader {
                     System.err.println("AOF load error: " + e.getMessage());
                 }
             }
+            System.out.println("AOF load completed.");
 
         } catch (Exception e) {
             // 文件不存在也正常（第一次启动）

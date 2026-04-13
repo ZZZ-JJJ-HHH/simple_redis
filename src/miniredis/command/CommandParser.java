@@ -108,13 +108,25 @@ public class CommandParser {
             }
             return new GenericCommand("OK");
         });
-        REGISTRY.put("scan", parts -> {
-            // SCAN 返回空列表
-            return new GenericCommand("*2\r\n$1\r\n0\r\n*0\r\n");
-        });
+
+        // SCAN 扫描键
+        REGISTRY.put("scan", parts -> new miniredis.command.impl.ScanCommand(parts));
+        // INFO 服务器信息
         REGISTRY.put("info", parts -> new GenericCommand("# Server\r\nredis_version:1.0.0\r\n"));
-        REGISTRY.put("dbsize", parts -> new GenericCommand(":0"));
-        REGISTRY.put("select", parts -> new GenericCommand("OK"));
+        // DBSIZE 键数量
+        REGISTRY.put("dbsize", parts -> new miniredis.command.impl.DbSizeCommand());
+        // SELECT 切换数据库
+        REGISTRY.put("select", parts -> new miniredis.command.impl.SelectCommand(parts));
+        // TYPE 查询键类型
+        REGISTRY.put("type", parts -> new miniredis.command.impl.TypeCommand(parts));
+        // TTL 查询剩余生存时间
+        REGISTRY.put("ttl", parts -> new miniredis.command.impl.TtlCommand(parts));
+        // DEL 删除键
+        REGISTRY.put("del", parts -> new miniredis.command.impl.DelCommand(parts));
+        // EXISTS 检查键是否存在
+        REGISTRY.put("exists", parts -> new miniredis.command.impl.ExistsCommand(parts));
+        // AUTH 密码认证
+        REGISTRY.put("auth", parts -> new miniredis.command.impl.AuthCommand(parts));
         REGISTRY.put("command", parts -> new GenericCommand("*0\r\n"));
 
     }

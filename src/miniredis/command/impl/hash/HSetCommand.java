@@ -59,6 +59,10 @@ public class HSetCommand implements Command {
             sb.append(args[i]);
         }
         AOFManager.append(sb.toString());
+        
+        // 设置默认 TTL（1小时）
+        long expireTime = System.currentTimeMillis() + 3600 * 1000L;
+        context.getExpireMap().put(key, expireTime);
 
         return String.valueOf(newCount);
     }
